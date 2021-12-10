@@ -9,13 +9,13 @@ const generateRandomString = function () {
 }
 
 //Match the given e-mail with the records
-// const getUserByEmail = function (email, database) {
-//   for (let user in database) {
-//     if (database[user].email === email) {
-//       return database[user].id;
-//     }
-//   }
-// }
+const getUserByEmail = function (email, database) {
+  for (let user in database) {
+    if (database[user].email === email) {
+      return database[user].id;
+    }
+  }
+}
 
 
 //Validate login by checking email and password combination of a user
