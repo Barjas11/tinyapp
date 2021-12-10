@@ -143,12 +143,12 @@ app.post("/logout", (req, res) => {
   res.redirect("/login");
 })
 
-app.get("/register", (req, res) => {
-  const id = req.session.user_id;
-  const user = id ? users[id] : null; // check if the cookie already exists with a legit id 
-  let templateVars = { user };
-  res.render("registration", templateVars);
-})
+// app.get("/register", (req, res) => {
+//   const id = req.session.user_id;
+//   const user = id ? users[id] : null; // check if the cookie already exists with a legit id 
+//   let templateVars = { user };
+//   res.render("registration", templateVars);
+// })
 
 app.post("/register", function (req, res) {
   const { email, password } = req.body;
