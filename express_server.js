@@ -1,4 +1,3 @@
-
 //import external modules
 const express = require("express");
 const ejs = require('ejs')
@@ -26,23 +25,20 @@ const urlDatabase = {
 };
 
 app.get("/", (req, res) => {
-  res.redirect("/register");
+  res.redirect("/login");
 });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
 
 // Urls page that shows user's generated short and long URLs:
 app.get("/urls", (req, res) => {
   const id = req.session.user_id;
   const user = id ? users[id] : null; // check if the cookie already exists with a legit id 
   if (user) {
-    let templateVars = { "urls": isUsersLink(urlDatabase, id), user };
+    let templateVars = { "urls": isUsersList(urlDatabase, id), user };
     res.render("urls_index", templateVars);
   } else {
     res.status(403).send("Please login or register first.")
@@ -76,20 +72,25 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  const { longURL } = req.body;
-  const shortURL = generateRandomString();
   const userID = req.session.user_id;
-  urlDatabase[shortURL] = {
-    longURL,
-    userID,
+  if (userID) {
+    const { longURL } = req.body;
+    const shortURL = generateRandomString();
+    const userID = req.session.user_id;
+    urlDatabase[shortURL] = {
+      longURL,
+      userID,
   }
   res.redirect(`/urls/${shortURL}`);
+  } else {
+    res.send("Unauthorized request");
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
   const { shortURL } = req.params;
   const longURL = urlDatabase[shortURL].longURL;
-  res.redirect(`http://${longURL}`);
+  res.redirect(`${longURL}`);
 });
 
 // when the delete button on the show /urls page is pressed
@@ -108,7 +109,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.put("/urls/:shortURL/edit", (req, res) => {
   const userID = req.session.user_id
   const shortURL = req.params.shortURL;
-  let usersObj = isUsersLink(urlDatabase, userID);
+  let usersObj = isUsersList(urlDatabase, userID);
   //check if shortURL exists for current user:
   if (usersObj[shortURL]) {
     urlDatabase[shortURL].longURL = req.body.longURL;
@@ -120,9 +121,14 @@ app.put("/urls/:shortURL/edit", (req, res) => {
 
 app.get("/login", (req, res) => {
   const id = req.session.user_id;
-  const user = id ? users[id] : null;
-  let templateVars = { user };
-  res.render("login", templateVars);
+  const user = id ? users[id] : null; 
+  if (user) {
+    res.redirect("/urls");
+  } else {
+    let templateVars = { user };
+    res.render("login", templateVars);
+  }
+  
 })
 
 app.post("/login", function (req, res) {
@@ -189,7 +195,7 @@ const users = {
 }
 
 
-const isUsersLink = function (object, id) {
+const isUsersList = function (object, id) {
   let usersObject = {};
   for (let key in object) {
     if (object[key].userID === id) {
@@ -208,5 +214,4 @@ const checkPassword = function (loginemail, loginpassword, objectDb) {
   }
   return false;
 }
-
 
