@@ -62,11 +62,14 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const { shortURL } = req.params;
   const id = req.session.user_id;
-  const user = id ? users[id] : null; // check if the cookie already exists with a legit id 
-  if (user && urlDatabase[shortURL]) {
+  const user = id ? users[id] : null; // check if the cookie already exists with a legit id
+  if (user && urlDatabase[shortURL] && urlDatabase[shortURL].userID == user.id) {
     let templateVars = { shortURL, longURL: urlDatabase[shortURL].longURL, user };
     res.render("urls_show", templateVars);
-  } else {
+  } else if(urlDatabase[shortURL].userID != user.id) {
+    res.send("You are not authorized to edit URLs of other users")
+  }
+  else {
     res.send("Requested page was not found")
   }
 });
@@ -89,8 +92,12 @@ app.post("/urls", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   const { shortURL } = req.params;
-  const longURL = urlDatabase[shortURL].longURL;
-  res.redirect(`${longURL}`);
+  try{
+    const longURL1 = urlDatabase[shortURL].longURL;
+    res.redirect(`${longURL1}`);
+  } catch (e) {
+    res.send("Link is invalid. Kindly recreate tiny URL and retry.");
+  }
 });
 
 // when the delete button on the show /urls page is pressed
@@ -195,11 +202,11 @@ const users = {
 }
 
 
-const isUsersList = function (object, id) {
+const isUsersList = function (urlDatabase, id) {
   let usersObject = {};
-  for (let key in object) {
-    if (object[key].userID === id) {
-      usersObject[key] = object[key];
+  for (let key in urlDatabase) {
+    if (urlDatabase[key].userID === id) {
+      usersObject[key] = urlDatabase[key];
     }
   }
   return usersObject;
@@ -214,4 +221,3 @@ const checkPassword = function (loginemail, loginpassword, objectDb) {
   }
   return false;
 }
-
