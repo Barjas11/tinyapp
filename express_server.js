@@ -60,17 +60,21 @@ app.get("/urls/new", (req, res) => {
 
 // Short url page where you can edit long URLs
 app.get("/urls/:shortURL", (req, res) => {
-  const { shortURL } = req.params;
-  const id = req.session.user_id;
-  const user = id ? users[id] : null; // check if the cookie already exists with a legit id
-  if (user && urlDatabase[shortURL] && urlDatabase[shortURL].userID == user.id) {
-    let templateVars = { shortURL, longURL: urlDatabase[shortURL].longURL, user };
-    res.render("urls_show", templateVars);
-  } else if(urlDatabase[shortURL].userID != user.id) {
-    res.send("You are not authorized to edit URLs of other users")
-  }
-  else {
-    res.send("Requested page was not found")
+  try{
+    const { shortURL } = req.params;
+    const id = req.session.user_id;
+    const user = id ? users[id] : null; // check if the cookie already exists with a legit id
+    if (user && urlDatabase[shortURL] && urlDatabase[shortURL].userID == user.id) {
+      let templateVars = { shortURL, longURL: urlDatabase[shortURL].longURL, user };
+      res.render("urls_show", templateVars);
+    } else if(urlDatabase[shortURL].userID != user.id) {
+      res.send("You are not authorized to edit URLs of other users")
+    }
+    else {
+      res.send("Requested page was not found")
+    }
+  } catch (e) {
+    res.send("You are not authorized to view URLs of other users");
   }
 });
 
